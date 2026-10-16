@@ -1,0 +1,54 @@
+---
+import SectionHeading from './SectionHeading.astro';
+import { skillGroups } from '../data/skills';
+
+let i = 0; // running index so the ripple flows across all groups
+---
+
+<section id="skills" class="reveal border-t border-line py-14">
+  <SectionHeading title="Skills" path="package.json" />
+
+  <div class="grid gap-5 md:grid-cols-3">
+    {skillGroups.map((group) => (
+      <div class:list={['rounded-xl border border-line bg-panel p-5', group.wide && 'md:col-span-3']}>
+        <h3 class="mb-3.5 font-mono text-[0.8125rem] font-medium tracking-[0.1em] text-accent uppercase">
+          {group.title}
+        </h3>
+        <div class="chips flex flex-wrap gap-2">
+          {group.skills.map((skill) => (
+            <span
+              class="chip inline-flex items-center gap-[7px] rounded-md border border-line bg-panel-2 px-[11px] py-[5px] font-mono text-[0.82rem] text-fg"
+              style={`--i:${i++}`}
+            >
+              {skill.icons.map(({ icon, color }) => (
+                <svg class="size-[15px] flex-none fill-current" style={`color:${color ?? '#' + icon.hex}`} viewBox="0 0 24 24" aria-hidden="true">
+                  <path d={icon.path} />
+                </svg>
+              ))}
+              {skill.name}
+            </span>
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+</section>
+
+<script>
+  // Tags pop in one after another when the section comes into view
+  const skills = document.getElementById('skills');
+  const groups = document.querySelectorAll('#skills .chips');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (skills && !reduce && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          groups.forEach((g) => g.classList.add('pop'));
+          io.disconnect();
+        }
+      },
+      { threshold: 0.15 },
+    );
+    io.observe(skills);
+  }
+</script>

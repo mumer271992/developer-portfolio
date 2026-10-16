@@ -1,0 +1,99 @@
+---
+import { profile } from '../data/profile';
+---
+
+<header class="grid items-center gap-10 py-12 md:grid-cols-[1.1fr_1fr] md:py-[72px] md:pb-14">
+  <div class="min-w-0">
+    <div class="status mb-[18px] inline-flex items-center gap-2 font-mono text-[0.8125rem] text-ok">
+      {profile.status}
+    </div>
+    <h1 class="text-[clamp(2.9rem,7.2vw,4.4rem)] leading-[1.02] tracking-[-0.01em]">
+      I build fast, accessible <em class="text-accent italic">interfaces</em> people enjoy using.
+    </h1>
+    <p class="mt-[18px] max-w-[34ch] text-xl text-muted">{profile.lede}</p>
+    <div class="mt-7 flex flex-wrap gap-3 font-mono text-[0.8125rem]">
+      <a href="#work" class="rounded-lg border border-accent bg-accent px-[18px] py-[11px] font-medium text-on-accent no-underline">See my work</a>
+      <a href="#contact" class="rounded-lg border border-line bg-panel px-[18px] py-[11px] text-fg no-underline hover:border-accent">Get in touch</a>
+    </div>
+  </div>
+
+  <div class="min-w-0 overflow-hidden rounded-xl border border-line bg-panel shadow-editor" aria-label={`Code snippet introducing ${profile.name}`}>
+    <div class="flex items-center gap-1.5 border-b border-line px-3.5 py-2.5 font-mono text-xs text-muted">
+      <i class="inline-block size-2.5 rounded-full bg-line"></i>
+      <i class="inline-block size-2.5 rounded-full bg-line"></i>
+      <i class="inline-block size-2.5 rounded-full bg-line"></i>
+      <b class="ml-2 font-normal">Developer.tsx</b>
+    </div>
+<pre id="hero-code" class="m-0 overflow-x-auto p-[18px] font-mono text-[0.82rem] leading-[1.75] text-fg"><span class="t-com">// what you get when you hire me</span>
+<span class="t-tag">&lt;Developer</span>
+  <span class="t-attr">name</span>=<span class="t-str">"{profile.name}"</span>
+  <span class="t-attr">role</span>=<span class="t-str">"{profile.role}"</span>
+  <span class="t-attr">experience</span>=&#123;<span class="t-str">10</span>&#125;
+  <span class="t-attr">stack</span>=&#123;[
+    <span class="t-str">"JavaScript"</span>, <span class="t-str">"TypeScript"</span>,
+    <span class="t-str">"React"</span>, <span class="t-str">"Next.js"</span>
+  ]&#125;
+  <span class="t-attr">leadsTeams</span>
+  <span class="t-attr">accessible</span>
+<span class="t-tag">/&gt;</span></pre>
+  </div>
+</header>
+
+<script>
+  // Types the code snippet once on load, keeping syntax colors
+  const pre = document.getElementById('hero-code');
+  if (pre) {
+    const caret = document.createElement('span');
+    caret.className = 'caret';
+    caret.setAttribute('aria-hidden', 'true');
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      pre.appendChild(caret);
+    } else {
+      pre.style.minHeight = `${pre.offsetHeight}px`;
+      const walker = document.createTreeWalker(pre, NodeFilter.SHOW_TEXT);
+      const nodes: { node: Text; text: string }[] = [];
+      let n: Node | null;
+      while ((n = walker.nextNode())) {
+        const t = n as Text;
+        nodes.push({ node: t, text: t.nodeValue ?? '' });
+        t.nodeValue = '';
+      }
+      const total = nodes.reduce((a, x) => a + x.text.length, 0);
+      caret.classList.add('typing');
+      nodes[0].node.parentNode?.insertBefore(caret, nodes[0].node.nextSibling);
+
+      const duration = 2000;
+      const delay = 350;
+      let start: number | null = null;
+      let shown = 0;
+
+      const place = (count: number) => {
+        let left = count;
+        for (const x of nodes) {
+          const take = Math.min(left, x.text.length);
+          x.node.nodeValue = x.text.slice(0, take);
+          left -= take;
+          if (left <= 0) {
+            x.node.parentNode?.insertBefore(caret, x.node.nextSibling);
+            break;
+          }
+        }
+      };
+
+      const step = (t: number) => {
+        if (start === null) start = t + delay;
+        const p = Math.max(0, Math.min(1, (t - start) / duration));
+        const count = Math.round(p * total);
+        if (count !== shown) { shown = count; place(count); }
+        if (p < 1) requestAnimationFrame(step);
+        else {
+          pre.appendChild(caret);
+          caret.classList.remove('typing');
+          pre.style.minHeight = '';
+        }
+      };
+      requestAnimationFrame(step);
+    }
+  }
+</script>

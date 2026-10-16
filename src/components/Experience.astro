@@ -1,0 +1,53 @@
+---
+import SectionHeading from './SectionHeading.astro';
+import { jobs } from '../data/experience';
+import { education } from '../data/profile';
+---
+
+<section id="experience" class="reveal border-t border-line py-14">
+  <SectionHeading title="Work Experience" path="git log --oneline" />
+
+  <ol class="timeline relative m-0 list-none p-0">
+    {jobs.map((job) => (
+      <li class="job relative grid gap-x-6 gap-y-2 pb-8 pl-9 last:pb-0 md:grid-cols-[160px_1fr]">
+        <span class="pt-0.5 font-mono text-[0.8125rem] text-muted tabular-nums">{job.when}</span>
+        <div class="min-w-0">
+          <h3 class="text-2xl">
+            {job.role} <span class="text-accent italic">· {job.company}</span>
+          </h3>
+          <p class="mt-1.5 max-w-[65ch] text-muted">{job.summary}</p>
+        </div>
+      </li>
+    ))}
+  </ol>
+
+  <div class="mt-9 grid gap-x-6 gap-y-2 border-t border-dashed border-line pt-6 pl-9 md:grid-cols-[160px_1fr]">
+    <span class="pt-0.5 font-mono text-[0.8125rem] text-muted">{education.when}</span>
+    <div>
+      <h3 class="text-2xl">{education.degree}</h3>
+      <p class="mt-1 text-muted">{education.school}</p>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Dotted line turns solid as you scroll; each dot lights up when reached
+  const tl = document.querySelector<HTMLElement>('.timeline');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (tl && !reduce) {
+    const jobs = [...tl.querySelectorAll<HTMLElement>('.job')];
+    tl.classList.add('tl-anim');
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      const r = tl.getBoundingClientRect();
+      const trigger = innerHeight * 0.6;
+      tl.style.setProperty('--prog', `${Math.max(0, Math.min(r.height, trigger - r.top))}px`);
+      for (const j of jobs) j.classList.toggle('lit', j.getBoundingClientRect().top + 6 <= trigger);
+    };
+    const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
+    addEventListener('scroll', onScroll, { passive: true });
+    addEventListener('resize', onScroll);
+    update();
+  }
+</script>

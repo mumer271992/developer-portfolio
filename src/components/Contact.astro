@@ -1,0 +1,57 @@
+---
+import { profile } from '../data/profile';
+---
+
+<section id="contact" class="reveal border-t border-line py-14">
+  <div class="grid items-center gap-8 rounded-2xl border border-line bg-panel p-6 md:grid-cols-[1.2fr_1fr] md:p-9">
+    <div class="min-w-0">
+      <h2 class="text-[2.6rem]">Let's work together</h2>
+      <p class="mt-3 max-w-[42ch] text-muted">{profile.contactText}</p>
+      <div class="mt-[22px] flex flex-wrap gap-2">
+        <span id="email" class="rounded-lg border border-line bg-bg px-3.5 py-2.5 font-mono break-all select-all">{profile.email}</span>
+        <button
+          id="copy-email"
+          type="button"
+          class="cursor-pointer rounded-lg border border-line bg-panel px-[18px] py-[11px] font-mono text-[0.8125rem] text-fg hover:border-accent"
+        >Copy email</button>
+      </div>
+    </div>
+
+    <ul class="m-0 grid min-w-0 list-none gap-2.5 p-0">
+      {profile.links.map((l) => (
+        <li>
+          <a
+            href={l.href}
+            target="_blank"
+            rel="noopener"
+            class="flex items-center justify-between gap-3 rounded-[10px] border border-line bg-bg px-4 py-3.5 font-mono text-[0.9rem] text-fg no-underline hover:border-accent"
+          >
+            {l.label} <span class="text-[0.78rem] text-muted">{l.handle} ↗</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<script>
+  const btn = document.getElementById('copy-email');
+  const email = document.getElementById('email');
+  btn?.addEventListener('click', async () => {
+    const text = email?.textContent?.trim() ?? '';
+    try {
+      await navigator.clipboard.writeText(text);
+      btn.textContent = 'Copied';
+      setTimeout(() => (btn.textContent = 'Copy email'), 1800);
+    } catch {
+      if (email) {
+        const r = document.createRange();
+        r.selectNodeContents(email);
+        const s = getSelection();
+        s?.removeAllRanges();
+        s?.addRange(r);
+      }
+      btn.textContent = 'Press Ctrl/Cmd+C';
+    }
+  });
+</script>

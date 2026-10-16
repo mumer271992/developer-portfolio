@@ -1,0 +1,49 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Nav from '../components/Nav.astro';
+import Hero from '../components/Hero.astro';
+import Skills from '../components/Skills.astro';
+import Experience from '../components/Experience.astro';
+import Work from '../components/Work.astro';
+import Contact from '../components/Contact.astro';
+import { profile } from '../data/profile';
+---
+
+<Layout title={profile.name} description={`${profile.name}, ${profile.role}. ${profile.lede}`}>
+  <Nav />
+  <main id="top" class="mx-auto max-w-[1040px] px-4">
+    <Hero />
+    <Skills />
+    <Experience />
+    <Work />
+    <Contact />
+
+    <footer class="flex flex-wrap justify-between gap-3 pt-8 pb-12 font-mono text-xs text-muted">
+      <span>© {new Date().getFullYear()} {profile.name}</span>
+      <span>Built with Astro and Tailwind CSS</span>
+    </footer>
+  </main>
+
+  <script>
+    // Sections below the fold slide up softly when they scroll into view
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!reduce && 'IntersectionObserver' in window) {
+      const io = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting) {
+              e.target.classList.remove('pending');
+              io.unobserve(e.target);
+            }
+          }
+        },
+        { rootMargin: '0px 0px -8% 0px', threshold: 0.08 },
+      );
+      document.querySelectorAll<HTMLElement>('section.reveal').forEach((s) => {
+        if (s.getBoundingClientRect().top < innerHeight * 0.92) return;
+        s.classList.add('pending');
+        io.observe(s);
+      });
+    }
+  </script>
+</Layout>

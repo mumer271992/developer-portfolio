@@ -1,0 +1,12 @@
+---
+interface Props {
+  title: string;
+  path: string;
+}
+const { title, path } = Astro.props;
+---
+
+<div class="mb-7 flex flex-wrap items-baseline justify-between gap-4">
+  <h2 class="text-[2.6rem]">{title}</h2>
+  <span class="font-mono text-[0.8125rem] text-muted">{path}</span>
+</div>

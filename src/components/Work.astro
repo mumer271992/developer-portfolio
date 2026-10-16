@@ -1,0 +1,57 @@
+---
+import SectionHeading from './SectionHeading.astro';
+import { projects } from '../data/projects';
+
+// Slightly different mockup layouts so the cards don't look identical
+const layouts = [
+  ['hl', 'w8', 'row', 'w6'],
+  ['w6', 'hl', 'w8', 'row'],
+  ['hl', 'row', 'w8', 'w6'],
+  ['hl', 'w8', 'w6', 'row'],
+];
+const widths: Record<string, string> = { w6: 'w-3/5', w8: 'w-4/5' };
+---
+
+<section id="work" class="reveal border-t border-line py-14">
+  <SectionHeading title="Selected work" path="~/products" />
+
+  <div class="grid gap-5 md:grid-cols-2">
+    {projects.map((p, idx) => (
+      <article class="project flex flex-col overflow-hidden rounded-xl border border-line bg-panel transition duration-200 hover:-translate-y-0.5 hover:border-accent">
+        <div class="thumb relative aspect-[16/8] max-w-full overflow-hidden border-b border-line" data-tone={p.tone}>
+          {p.image ? (
+            <img src={p.image} alt={`${p.name} screenshot`} class="size-full object-cover object-top" loading="lazy" />
+          ) : (
+            <div class="absolute inset-x-[18px] top-[18px] bottom-0 grid content-start gap-2 rounded-t-lg border border-b-0 border-line bg-panel-2 p-3" aria-hidden="true">
+              {layouts[idx % layouts.length].map((item) =>
+                item === 'row' ? (
+                  <div class="grid grid-cols-3 gap-1.5">
+                    <span class="mock-block"></span><span class="mock-block"></span><span class="mock-block"></span>
+                  </div>
+                ) : item === 'hl' ? (
+                  <div class="bar-line bar-hl"></div>
+                ) : (
+                  <div class:list={['bar-line', widths[item]]}></div>
+                ),
+              )}
+            </div>
+          )}
+        </div>
+
+        <div class="flex flex-1 flex-col gap-2.5 p-5">
+          <h3 class="text-[1.6rem]">
+            {p.href ? <a href={p.href} target="_blank" rel="noopener" class="text-fg">{p.name} ↗</a> : p.name}
+          </h3>
+          <span class="font-mono text-[0.8125rem] text-ok">{p.org}</span>
+          <p class="text-[0.95rem] text-muted">{p.description}</p>
+          <div class="mt-auto flex flex-wrap gap-1.5 pt-1.5">
+            {p.tags.map((t) => (
+              <span class="rounded-full border border-line bg-panel-2 px-2 py-0.5 font-mono text-[0.72rem] text-fg">{t}</span>
+            ))}
+          </div>
+          <span class="font-mono text-[0.72rem] tracking-[0.08em] text-muted uppercase">{p.industry}</span>
+        </div>
+      </article>
+    ))}
+  </div>
+</section>

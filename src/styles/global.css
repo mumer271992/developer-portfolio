@@ -1,0 +1,302 @@
+@import "tailwindcss";
+
+/* -------------------------------------------------------------------------
+   Theme tokens
+   Dark is the default. Light applies when the visitor's system is light
+   (and they have not picked dark), or when they pick light with the toggle.
+   ------------------------------------------------------------------------- */
+:root {
+  color-scheme: dark;
+  --bg: #0c1019;
+  --panel: #121826;
+  --panel-2: #182032;
+  --line: #243049;
+  --fg: #dfe5f2;
+  --muted: #8b97b3;
+  --accent: #82a8ff;
+  --warm: #f0b46e;
+  --ok: #5fd3a3;
+  --on-accent: #0c1019;
+  --dot: rgba(130, 168, 255, 0.07);
+  --ring: rgba(130, 168, 255, 0.18);
+  --pulse: rgba(95, 211, 163, 0.55);
+  --pulse-0: rgba(95, 211, 163, 0);
+  --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  --shine: rgba(255, 255, 255, 0.22);
+  --thumb-blue: #1a2440;
+  --thumb-warm: #2a2133;
+  --thumb-green: #15302b;
+  --thumb-slate: #22263a;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --bg: #f6f8fc;
+    --panel: #ffffff;
+    --panel-2: #eef2f9;
+    --line: #dbe2ee;
+    --fg: #141a2a;
+    --muted: #566079;
+    --accent: #2f5fd8;
+    --warm: #a85c0c;
+    --ok: #0f7f55;
+    --on-accent: #ffffff;
+    --dot: rgba(47, 95, 216, 0.1);
+    --ring: rgba(47, 95, 216, 0.15);
+    --pulse: rgba(15, 127, 85, 0.45);
+    --pulse-0: rgba(15, 127, 85, 0);
+    --shadow: 0 16px 40px -18px rgba(20, 26, 42, 0.28);
+    --shine: rgba(255, 255, 255, 0.75);
+    --thumb-blue: #e3eafb;
+    --thumb-warm: #f6ece2;
+    --thumb-green: #e1f2ea;
+    --thumb-slate: #eceef4;
+  }
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f6f8fc;
+  --panel: #ffffff;
+  --panel-2: #eef2f9;
+  --line: #dbe2ee;
+  --fg: #141a2a;
+  --muted: #566079;
+  --accent: #2f5fd8;
+  --warm: #a85c0c;
+  --ok: #0f7f55;
+  --on-accent: #ffffff;
+  --dot: rgba(47, 95, 216, 0.1);
+  --ring: rgba(47, 95, 216, 0.15);
+  --pulse: rgba(15, 127, 85, 0.45);
+  --pulse-0: rgba(15, 127, 85, 0);
+  --shadow: 0 16px 40px -18px rgba(20, 26, 42, 0.28);
+  --shine: rgba(255, 255, 255, 0.75);
+  --thumb-blue: #e3eafb;
+  --thumb-warm: #f6ece2;
+  --thumb-green: #e1f2ea;
+  --thumb-slate: #eceef4;
+}
+
+/* Expose the tokens as Tailwind utilities: bg-panel, text-muted, border-line, font-display ... */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-panel-2: var(--panel-2);
+  --color-line: var(--line);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-warm: var(--warm);
+  --color-ok: var(--ok);
+  --color-on-accent: var(--on-accent);
+
+  --font-display: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --shadow-editor: var(--shadow);
+}
+
+/* -------------------------------------------------------------------------
+   Base
+   ------------------------------------------------------------------------- */
+@layer base {
+  body {
+    @apply bg-bg text-fg font-sans leading-relaxed;
+    background-image: radial-gradient(circle at 1px 1px, var(--dot) 1px, transparent 0);
+    background-size: 24px 24px;
+  }
+  h1, h2, h3 {
+    @apply font-display font-normal leading-[1.1];
+    text-wrap: balance;
+  }
+  a { @apply text-accent; }
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+  section[id] { scroll-margin-top: 20px; }
+}
+
+/* -------------------------------------------------------------------------
+   Pieces that need pseudo-elements, keyframes or state classes
+   ------------------------------------------------------------------------- */
+@layer components {
+  /* Navbar links: "#" slides in on hover and on the active section */
+  .nav-link {
+    @apply relative py-1 text-muted no-underline transition-colors duration-200;
+  }
+  .nav-link::before {
+    content: "#";
+    position: absolute;
+    right: 100%;
+    color: var(--accent);
+    opacity: 0;
+    transform: translateX(6px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
+  }
+  .nav-link:hover,
+  .nav-link:focus-visible,
+  .nav-link.active { @apply text-fg; }
+  .nav-link:hover::before,
+  .nav-link:focus-visible::before,
+  .nav-link.active::before { opacity: 1; transform: none; }
+
+  /* Theme toggle icons */
+  .theme-toggle .sun { display: none; }
+  :root[data-theme="dark"] .theme-toggle .sun { display: block; }
+  :root[data-theme="dark"] .theme-toggle .moon { display: none; }
+  :root[data-theme="light"] .theme-toggle .moon { display: block; }
+  :root[data-theme="light"] .theme-toggle .sun { display: none; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) .theme-toggle .sun { display: block; }
+    :root:not([data-theme]) .theme-toggle .moon { display: none; }
+  }
+  .theme-toggle.spin svg { animation: icon-spin 0.5s cubic-bezier(0.3, 1.4, 0.5, 1); }
+
+  /* Pulsing availability dot */
+  .status::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--ok);
+    box-shadow: 0 0 0 0 var(--pulse);
+    animation: pulse 2s ease-out infinite;
+  }
+
+  /* Code editor */
+  .t-tag { color: var(--accent); }
+  .t-attr { color: var(--warm); }
+  .t-str { color: var(--ok); }
+  .t-com { color: var(--muted); }
+  .caret {
+    display: inline-block;
+    width: 0.55em;
+    height: 1.15em;
+    margin-left: 1px;
+    vertical-align: -0.2em;
+    background: var(--accent);
+    animation: blink 1s steps(1) infinite;
+  }
+  .caret.typing { animation: none; }
+
+  /* Skill tags ripple in */
+  .chips.pop .chip {
+    animation: pop 0.45s cubic-bezier(0.3, 1.5, 0.5, 1) backwards;
+    animation-delay: calc(var(--i) * 28ms);
+  }
+
+  /* Project mockup + hover shimmer */
+  .thumb[data-tone="blue"] { background: linear-gradient(135deg, var(--thumb-blue), var(--panel)); }
+  .thumb[data-tone="warm"] { background: linear-gradient(135deg, var(--thumb-warm), var(--panel)); }
+  .thumb[data-tone="green"] { background: linear-gradient(135deg, var(--thumb-green), var(--panel)); }
+  .thumb[data-tone="slate"] { background: linear-gradient(135deg, var(--thumb-slate), var(--panel)); }
+  .thumb .bar-line { height: 8px; border-radius: 4px; background-color: var(--line); }
+  .thumb .bar-hl { width: 40%; background-color: var(--accent); transition: width 0.5s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .thumb[data-tone="warm"] .bar-hl { background-color: var(--warm); }
+  .thumb[data-tone="green"] .bar-hl { background-color: var(--ok); }
+  .thumb .mock-block { height: 34px; border-radius: 6px; background-color: var(--line); }
+  .project:hover .thumb .bar-line,
+  .project:hover .thumb .mock-block {
+    background-image: linear-gradient(90deg, transparent 0%, var(--shine) 50%, transparent 100%);
+    background-size: 200% 100%;
+    background-repeat: no-repeat;
+    background-position: 150% 0;
+    animation: shimmer 1.4s ease-in-out infinite;
+  }
+  .project:hover .thumb .bar-hl { width: 58%; }
+  .project:hover .thumb .mock-block:nth-child(2) { animation-delay: 0.1s; }
+  .project:hover .thumb .mock-block:nth-child(3) { animation-delay: 0.2s; }
+  .project .thumb img { transition: transform 0.5s ease; }
+  .project:hover .thumb img { transform: scale(1.04); }
+
+  /* Timeline: dotted at rest, solid line draws as you scroll, dots light up */
+  .timeline::before {
+    content: "";
+    position: absolute;
+    left: 7px;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    background: var(--line);
+  }
+  .job::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 6px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--accent);
+  }
+  .timeline.tl-anim::before {
+    background: repeating-linear-gradient(to bottom, var(--muted) 0 3px, transparent 3px 9px);
+    opacity: 0.55;
+  }
+  .timeline.tl-anim::after {
+    content: "";
+    position: absolute;
+    left: 7px;
+    top: 6px;
+    width: 2px;
+    height: var(--prog, 0px);
+    max-height: calc(100% - 12px);
+    background: var(--accent);
+    border-radius: 1px;
+  }
+  .timeline.tl-anim .job::before {
+    z-index: 1;
+    border-color: var(--muted);
+    transition: border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+  }
+  .timeline.tl-anim .job.lit::before {
+    border-color: var(--accent);
+    background: var(--accent);
+    box-shadow: 0 0 0 4px var(--ring);
+  }
+
+  /* Sections slide up softly when scrolled into view */
+  .reveal { transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.7s ease; }
+  .reveal.pending { transform: translateY(28px); opacity: 0.55; }
+}
+
+/* Theme switch: ripple from the toggle button (View Transitions API) */
+::view-transition-old(root),
+::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+::view-transition-old(root) { z-index: 1; }
+::view-transition-new(root) { z-index: 2; }
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 var(--pulse); }
+  70%, 100% { box-shadow: 0 0 0 8px var(--pulse-0); }
+}
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes pop {
+  from { transform: scale(0.8); opacity: 0.35; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes shimmer {
+  from { background-position: 150% 0; }
+  to { background-position: -50% 0; }
+}
+@keyframes icon-spin {
+  from { transform: rotate(-120deg) scale(0.4); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; }
+  .status::before { animation: none; box-shadow: 0 0 0 4px var(--ring); }
+  .chips.pop .chip { animation: none; }
+  .project:hover .thumb .bar-line,
+  .project:hover .thumb .mock-block { animation: none; }
+  .project:hover .thumb .bar-hl { width: 40%; }
+  .reveal.pending { transform: none; opacity: 1; }
+}
