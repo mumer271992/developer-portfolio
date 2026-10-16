@@ -158,6 +158,11 @@
   }
   .theme-toggle.spin svg { animation: icon-spin 0.5s cubic-bezier(0.3, 1.4, 0.5, 1); }
 
+  /* Mobile menu icon swap */
+  .menu-toggle .close { display: none; }
+  .menu-toggle[aria-expanded="true"] .open { display: none; }
+  .menu-toggle[aria-expanded="true"] .close { display: block; }
+
   /* Pulsing availability dot */
   .status::before {
     content: "";
