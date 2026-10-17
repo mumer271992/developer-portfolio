@@ -1,26 +1,51 @@
 import type { ImageMetadata } from "astro";
 
-// Every image in src/assets/projects/<folder>/, bundled and optimized by Astro.
-const files = import.meta.glob<ImageMetadata>(
+// Every image and video in src/assets/projects/<folder>/. Images are optimized
+// by Astro; videos are copied as-is and only download when their slide plays.
+const imageFiles = import.meta.glob<ImageMetadata>(
   "../assets/projects/*/*.{png,jpg,jpeg,webp,gif,svg,avif}",
   { eager: true, import: "default" },
 );
+const videoFiles = import.meta.glob<string>("../assets/projects/*/*.{mp4,webm}", {
+  eager: true,
+  query: "?url",
+  import: "default",
+});
+
+export type ProjectMedia =
+  | { kind: "image"; src: ImageMetadata }
+  | { kind: "video"; src: string; poster?: ImageMetadata };
+
+/** "../assets/projects/iqvia/demo.poster.png" -> "../assets/projects/iqvia/demo" */
+const stem = (path: string) => path.replace(/(\.poster)?\.[^./]+$/, "");
 
 /**
- * All images in src/assets/projects/<folder>, sorted by file name
- * (prefix names with 01-, 02- ... to control the order).
+ * All images and videos in src/assets/projects/<folder>, sorted by file name
+ * (prefix names with 01-, 02- ... to control the order). A video's still frame,
+ * shown until it plays, goes next to it as <name>.poster.<ext>.
  */
-function imagesIn(folder: string): ImageMetadata[] {
+function mediaIn(folder: string): ProjectMedia[] {
   const prefix = `../assets/projects/${folder}/`;
-  const found = Object.keys(files)
-    .filter((path) => path.startsWith(prefix))
-    .sort((a, b) =>
-      a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }),
-    )
-    .map((path) => files[path]);
-  if (!found.length)
-    throw new Error(`No project images found in src/assets/projects/${folder}`);
-  return found;
+  const posters = new Map<string, ImageMetadata>();
+  const items: [string, ProjectMedia][] = [];
+
+  for (const [path, src] of Object.entries(imageFiles)) {
+    if (!path.startsWith(prefix)) continue;
+    if (/\.poster\.[^./]+$/.test(path)) posters.set(stem(path), src);
+    else items.push([path, { kind: "image", src }]);
+  }
+  for (const [path, src] of Object.entries(videoFiles)) {
+    if (path.startsWith(prefix)) items.push([path, { kind: "video", src }]);
+  }
+  for (const [path, item] of items) {
+    if (item.kind === "video") item.poster = posters.get(stem(path));
+  }
+
+  if (!items.length)
+    throw new Error(`No project media found in src/assets/projects/${folder}`);
+  return items
+    .sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }))
+    .map(([, item]) => item);
 }
 
 export interface Project {
@@ -32,13 +57,14 @@ export interface Project {
   /** Mockup color theme used until a real screenshot is added. */
   tone: "blue" | "warm" | "green" | "slate";
   /**
-   * Optional screenshots, usually `imagesIn("<folder>")`. With more than one, the
-   * card cycles through them. Without any, the card shows a mockup.
+   * Optional screenshots and videos, usually `mediaIn("<folder>")`. With more than
+   * one, the card cycles through them. Without any, the card shows a mockup.
    */
-  images?: ImageMetadata[];
+  media?: ProjectMedia[];
   /**
-   * How the images fill the card. "cover" (default) fills it edge to edge, for
-   * screenshots. "contain" shows the whole image centered on a dark plate, for logos.
+   * How images fill the card (videos always fill it). "cover" (default) fills it
+   * edge to edge, for screenshots. "contain" shows the whole image centered on a
+   * dark plate, for logos.
    */
   imageFit?: "cover" | "contain";
   /** Optional live or case-study link. */
@@ -62,7 +88,7 @@ export const projects: Project[] = [
       "Tailwind CSS",
     ],
     tone: "blue",
-    images: imagesIn("quillnote"),
+    media: mediaIn("quillnote"),
   },
   {
     name: "Openroom Platform",
@@ -79,7 +105,7 @@ export const projects: Project[] = [
       "Tailwind CSS",
     ],
     tone: "blue",
-    images: imagesIn("openroom"),
+    media: mediaIn("openroom"),
   },
   {
     name: "Clinical Study Platform (DTP)",
@@ -97,7 +123,7 @@ export const projects: Project[] = [
       "Material UI",
     ],
     tone: "green",
-    images: imagesIn("iqvia"),
+    media: mediaIn("iqvia"),
   },
   {
     name: "Security Insights Dashboard",
@@ -107,7 +133,7 @@ export const projects: Project[] = [
     industry: "Cybersecurity · SaaS",
     tags: ["React", "Redux", "D3.js", "single-spa", "Storybook", "Jest"],
     tone: "warm",
-    images: imagesIn("elevate-security"),
+    media: mediaIn("elevate-security"),
   },
   {
     name: "Unlayer Studio",
@@ -123,7 +149,7 @@ export const projects: Project[] = [
       "AWS Serverless",
     ],
     tone: "slate",
-    images: imagesIn("unlayer"),
+    media: mediaIn("unlayer"),
     imageFit: "contain",
   },
   {
@@ -134,7 +160,7 @@ export const projects: Project[] = [
     industry: "Media & Entertainment (Audio Streaming)",
     tags: ["Vue.js", "Vuex", "Element UI"],
     tone: "slate",
-    images: imagesIn("luminarymedia"),
+    media: mediaIn("luminarymedia"),
   },
   {
     name: "Control My Events (CME)",
@@ -144,7 +170,7 @@ export const projects: Project[] = [
     industry: "SaaS",
     tags: ["Angular2"],
     tone: "slate",
-    images: imagesIn("control-my-events"),
+    media: mediaIn("control-my-events"),
   },
   {
     name: "Undolus",
@@ -154,6 +180,6 @@ export const projects: Project[] = [
     industry: "Dating Safety Tech",
     tags: ["AngularJS", "AngularJS Material", "REST APIs", "Laravel", "MySql"],
     tone: "slate",
-    images: imagesIn("undolus"),
+    media: mediaIn("undolus"),
   },
 ];

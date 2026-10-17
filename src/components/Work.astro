@@ -1,7 +1,17 @@
 ---
-import { Image } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 import SectionHeading from './SectionHeading.astro';
 import { projects } from '../data/projects';
+
+// Video posters are plain URLs, so optimize them up front
+const posterUrls = new Map<unknown, string>();
+for (const p of projects) {
+  for (const m of p.media ?? []) {
+    if (m.kind === 'video' && m.poster) {
+      posterUrls.set(m, (await getImage({ src: m.poster, width: 1040, format: 'webp' })).src);
+    }
+  }
+}
 
 // Slightly different mockup layouts so the cards don't look identical
 const layouts = [
@@ -22,35 +32,51 @@ const widths: Record<string, string> = { w6: 'w-3/5', w8: 'w-4/5' };
         <div
           class:list={['thumb relative aspect-[16/8] max-w-full overflow-hidden border-b border-line', { 'thumb-logo': p.imageFit === 'contain' }]}
           data-tone={p.tone}
-          {...(p.images && p.images.length > 1 && { 'data-carousel': '', role: 'group', 'aria-roledescription': 'carousel', 'aria-label': `${p.name} screenshots` })}
+          data-media={p.media?.length ? '' : undefined}
+          {...(p.media && p.media.length > 1 && { 'data-carousel': '', role: 'group', 'aria-roledescription': 'carousel', 'aria-label': `${p.name} screenshots` })}
         >
-          {p.images?.length ? (
+          {p.media?.length ? (
             <>
-              {p.images.map((img, i) => (
-                <div
-                  class:list={['slide absolute inset-0', { 'grid place-items-center': p.imageFit === 'contain', 'is-active': i === 0 }]}
-                  aria-hidden={i === 0 ? undefined : 'true'}
-                >
-                  {p.imageFit === 'contain' ? (
-                    <Image src={img} alt={`${p.name} logo`} class="h-auto w-[55%] max-w-[240px] object-contain" />
-                  ) : (
-                    <Image
-                      src={img}
-                      alt={p.images!.length > 1 ? `${p.name} screenshot ${i + 1} of ${p.images!.length}` : `${p.name} screenshot`}
-                      widths={[480, 720, 1040]}
-                      sizes="(min-width: 768px) 510px, 100vw"
-                      class="size-full object-cover object-top"
-                    />
-                  )}
-                </div>
-              ))}
-              {p.images.length > 1 && (
+              {p.media.map((m, i) => {
+                const label = p.media!.length > 1 ? `${p.name} screenshot ${i + 1} of ${p.media!.length}` : `${p.name} screenshot`;
+                return (
+                  <div
+                    class:list={['slide absolute inset-0', { 'grid place-items-center': m.kind === 'image' && p.imageFit === 'contain', 'is-active': i === 0 }]}
+                    aria-hidden={i === 0 ? undefined : 'true'}
+                  >
+                    {m.kind === 'video' ? (
+                      <video
+                        class="size-full object-cover object-top"
+                        muted
+                        loop={p.media!.length === 1}
+                        playsinline
+                        preload="none"
+                        poster={posterUrls.get(m)}
+                        aria-label={label}
+                      >
+                        <source src={m.src} type={m.src.endsWith('.webm') ? 'video/webm' : 'video/mp4'} />
+                      </video>
+                    ) : p.imageFit === 'contain' ? (
+                      <Image src={m.src} alt={`${p.name} logo`} class="h-auto w-[55%] max-w-[240px] object-contain" />
+                    ) : (
+                      <Image
+                        src={m.src}
+                        alt={label}
+                        widths={[480, 720, 1040]}
+                        sizes="(min-width: 768px) 510px, 100vw"
+                        class="size-full object-cover object-top"
+                      />
+                    )}
+                  </div>
+                );
+              })}
+              {p.media.length > 1 && (
                 <div class="carousel-dots absolute inset-x-0 bottom-1 z-[1] flex justify-center">
-                  {p.images.map((_, i) => (
+                  {p.media.map((_, i) => (
                     <button
                       type="button"
                       class="carousel-dot"
-                      aria-label={`Show screenshot ${i + 1} of ${p.images!.length}`}
+                      aria-label={`Show screenshot ${i + 1} of ${p.media!.length}`}
                       aria-current={i === 0 ? 'true' : undefined}
                     ></button>
                   ))}
@@ -96,16 +122,34 @@ const widths: Record<string, string> = { w6: 'w-3/5', w8: 'w-4/5' };
   // Cards with several screenshots crossfade through them. Autoplay pauses while
   // the card is hovered or focused, off screen, or the tab is hidden, and is
   // off entirely for reduced motion (the dots still work).
+  // A video plays only while its slide is showing and on screen, so it isn't
+  // downloaded until then. In a carousel, the next slide follows when it ends.
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const INTERVAL = 4500;
 
-  document.querySelectorAll<HTMLElement>('[data-carousel]').forEach((el, n) => {
+  document.querySelectorAll<HTMLElement>('[data-media]').forEach((el, n) => {
     const slides = [...el.querySelectorAll<HTMLElement>('.slide')];
     const dots = [...el.querySelectorAll<HTMLButtonElement>('.carousel-dot')];
+    const isCarousel = el.hasAttribute('data-carousel');
     let index = 0;
     let timer: number | undefined;
     let visible = false;
     let held = false;
+
+    const videoAt = (i: number) => slides[i]?.querySelector('video') ?? null;
+
+    // With reduced motion, videos don't autoplay; show controls instead
+    if (reduce) el.querySelectorAll('video').forEach((v) => { v.controls = true; });
+
+    const syncVideos = () => {
+      slides.forEach((_, k) => {
+        const v = videoAt(k);
+        if (!v) return;
+        const play = k === index && visible && !document.hidden && !reduce;
+        if (play) v.play().catch(() => {});
+        else v.pause();
+      });
+    };
 
     const show = (i: number) => {
       index = (i + slides.length) % slides.length;
@@ -119,14 +163,22 @@ const widths: Record<string, string> = { w6: 'w-3/5', w8: 'w-4/5' };
         if (k === index) d.setAttribute('aria-current', 'true');
         else d.removeAttribute('aria-current');
       });
+      const v = videoAt(index);
+      if (v) v.currentTime = 0;
+      syncVideos();
     };
 
     const stop = () => { clearTimeout(timer); timer = undefined; };
     const start = (delay = INTERVAL) => {
       stop();
-      if (reduce || !visible || held || document.hidden) return;
+      // Video slides advance when the video ends, not on the timer
+      if (!isCarousel || videoAt(index) || reduce || !visible || held || document.hidden) return;
       timer = window.setTimeout(() => { show(index + 1); start(); }, delay);
     };
+
+    slides.forEach((_, k) => videoAt(k)?.addEventListener('ended', () => {
+      if (k === index && !held) { show(index + 1); start(); }
+    }));
 
     dots.forEach((d, k) => d.addEventListener('click', () => { show(k); start(); }));
 
@@ -138,12 +190,13 @@ const widths: Record<string, string> = { w6: 'w-3/5', w8: 'w-4/5' };
     card.addEventListener('focusout', (e) => {
       if (!card.contains(e.relatedTarget as Node)) hold(false)();
     });
-    document.addEventListener('visibilitychange', () => start());
+    document.addEventListener('visibilitychange', () => { start(); syncVideos(); });
 
     // Stagger the first change per card so they don't all flip together
     new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;
       visible ? start(INTERVAL + (n % 4) * 700) : stop();
+      syncVideos();
     }, { threshold: 0.4 }).observe(el);
   });
 </script>
