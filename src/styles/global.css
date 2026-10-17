@@ -92,9 +92,9 @@
   --color-ok: var(--ok);
   --color-on-accent: var(--on-accent);
 
-  --font-display: "Instrument Serif", Georgia, "Times New Roman", serif;
-  --font-sans: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-display: var(--font-instrument), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-plex), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, "SFMono-Regular", Menlo, monospace;
 
   --shadow-editor: var(--shadow);
 }
@@ -207,23 +207,30 @@
   /* Project screenshot carousel: slides crossfade, dots pick a slide */
   .thumb .slide { opacity: 0; transition: opacity 0.8s ease; }
   .thumb .slide.is-active { opacity: 1; }
+  /* Each dot is a 24px tap target with the visible pill drawn inside it */
   .carousel-dot {
-    width: 7px;
-    height: 7px;
+    display: grid;
+    place-items: center;
+    min-width: 24px;
+    height: 24px;
     padding: 0;
     border: 0;
     border-radius: 999px;
+    background: none;
+    cursor: pointer;
+  }
+  .carousel-dot::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
     background: rgba(255, 255, 255, 0.55);
     box-shadow: 0 0 0 1px rgba(12, 16, 25, 0.35);
-    cursor: pointer;
     transition: width 0.3s ease, background-color 0.3s ease;
   }
-  .carousel-dot:hover { background: rgba(255, 255, 255, 0.85); }
-  .carousel-dot[aria-current="true"] { width: 18px; background: #fff; }
-  .carousel-dot:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  /* Larger invisible tap area around each dot */
-  .carousel-dot { position: relative; }
-  .carousel-dot::after { content: ""; position: absolute; inset: -8px -3px; }
+  .carousel-dot:hover::before { background: rgba(255, 255, 255, 0.85); }
+  .carousel-dot[aria-current="true"]::before { width: 18px; background: #fff; }
+  .carousel-dot:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
   .thumb .bar-line { height: 8px; border-radius: 4px; background-color: var(--line); }
   .thumb .bar-hl { width: 40%; background-color: var(--accent); transition: width 0.5s cubic-bezier(0.2, 0.7, 0.2, 1); }
   .thumb[data-tone="warm"] .bar-hl { background-color: var(--warm); }
@@ -291,8 +298,8 @@
   }
 
   /* Sections slide up softly when scrolled into view */
-  .reveal { transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.7s ease; }
-  .reveal.pending { transform: translateY(28px); opacity: 0.55; }
+  .reveal { transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .reveal.pending { transform: translateY(28px); }
 }
 
 /* Theme switch: ripple from the toggle button (View Transitions API) */
@@ -326,5 +333,5 @@
   .project:hover .thumb .bar-line,
   .project:hover .thumb .mock-block { animation: none; }
   .project:hover .thumb .bar-hl { width: 40%; }
-  .reveal.pending { transform: none; opacity: 1; }
+  .reveal.pending { transform: none; }
 }
