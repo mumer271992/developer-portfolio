@@ -1,0 +1,8 @@
+---
+import { profile } from '../data/profile';
+---
+
+<footer class="flex flex-wrap justify-between gap-3 pt-8 pb-12 font-mono text-xs text-muted">
+  <span>© {new Date().getFullYear()} {profile.name}</span>
+  <span>Built with Astro and Tailwind CSS</span>
+</footer>

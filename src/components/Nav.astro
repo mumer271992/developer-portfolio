@@ -2,16 +2,16 @@
 import { profile } from '../data/profile';
 
 const links = [
-  { href: '#skills', label: 'Skills' },
-  { href: '#experience', label: 'Experience' },
-  { href: '#work', label: 'Work' },
-  { href: '#contact', label: 'Contact' },
+  { href: '/#skills', label: 'Skills' },
+  { href: '/#experience', label: 'Experience' },
+  { href: '/#work', label: 'Work' },
+  { href: '/#contact', label: 'Contact' },
 ];
 ---
 
 <nav class="sticky top-0 z-10 border-b border-line bg-bg/85 backdrop-blur-md">
   <div class="mx-auto flex max-w-[1040px] items-center justify-between gap-4 px-4 py-3">
-    <a href="#top" class="font-mono text-[0.8125rem] text-fg no-underline">
+    <a href="/#top" class="font-mono text-[0.8125rem] text-fg no-underline">
       &lt;<span class="text-accent">{profile.shortName}</span> /&gt;
     </a>
 
@@ -125,7 +125,7 @@ const links = [
 
   // Highlight the navbar link for the section in view
   const items = [...document.querySelectorAll<HTMLAnchorElement>('.nav-link')]
-    .map((a) => ({ a, s: document.querySelector<HTMLElement>(a.getAttribute('href')!) }))
+    .map((a) => ({ a, s: document.querySelector<HTMLElement>(a.hash) }))
     .filter((x): x is { a: HTMLAnchorElement; s: HTMLElement } => !!x.s);
 
   let ticking = false;

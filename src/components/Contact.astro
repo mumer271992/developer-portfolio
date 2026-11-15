@@ -26,7 +26,7 @@ import { profile } from '../data/profile';
             rel="noopener"
             class="flex items-center justify-between gap-3 rounded-[10px] border border-line bg-bg px-4 py-3.5 font-mono text-[0.9rem] text-fg no-underline hover:border-accent"
           >
-            {l.label} <span class="text-[0.78rem] text-muted">{l.handle} ↗</span>
+            {l.label} <span class="text-[0.78rem] text-muted">{l.handle} <span aria-hidden="true" class="text-[1.5rem] leading-none">↗</span></span>
           </a>
         </li>
       ))}

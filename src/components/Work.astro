@@ -28,7 +28,7 @@ const widths: Record<string, string> = { w6: 'w-3/5', w8: 'w-4/5' };
 
   <div class="grid gap-5 md:grid-cols-2">
     {projects.map((p, idx) => (
-      <article class="project flex flex-col overflow-hidden rounded-xl border border-line bg-panel transition duration-200 hover:-translate-y-0.5 hover:border-accent">
+      <article class="project relative flex cursor-pointer flex-col overflow-hidden rounded-xl border border-line bg-panel transition duration-200 hover:-translate-y-0.5 hover:border-accent has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-accent">
         <div
           class:list={['thumb relative aspect-[16/8] max-w-full overflow-hidden border-b border-line', { 'thumb-logo': p.imageFit === 'contain' }]}
           data-tone={p.tone}
@@ -71,7 +71,7 @@ const widths: Record<string, string> = { w6: 'w-3/5', w8: 'w-4/5' };
                 );
               })}
               {p.media.length > 1 && (
-                <div class="carousel-dots absolute inset-x-0 bottom-1 z-[1] flex justify-center">
+                <div class="carousel-dots absolute inset-x-0 bottom-1 z-[2] flex justify-center">
                   {p.media.map((_, i) => (
                     <button
                       type="button"
@@ -102,7 +102,10 @@ const widths: Record<string, string> = { w6: 'w-3/5', w8: 'w-4/5' };
 
         <div class="flex flex-1 flex-col gap-2.5 p-5">
           <h3 class="text-[1.6rem]">
-            {p.href ? <a href={p.href} target="_blank" rel="noopener" class="text-fg">{p.name} ↗</a> : p.name}
+            {/* The link's ::after covers the whole card, so clicking anywhere on it opens the project */}
+            <a href={`/projects/${p.slug}`} class="text-fg no-underline after:absolute after:inset-0 after:content-[''] hover:text-accent focus-visible:outline-none">
+              {p.name} <span aria-hidden="true" class="font-mono text-[1.5rem]">↗</span>
+            </a>
           </h3>
           <span class="font-mono text-[0.8125rem] text-ok">{p.org}</span>
           <p class="text-[0.95rem] text-muted">{p.description}</p>
@@ -139,7 +142,8 @@ const widths: Record<string, string> = { w6: 'w-3/5', w8: 'w-4/5' };
     const videoAt = (i: number) => slides[i]?.querySelector('video') ?? null;
 
     // With reduced motion, videos don't autoplay; show controls instead
-    if (reduce) el.querySelectorAll('video').forEach((v) => { v.controls = true; });
+    // (raised above the card's stretched link so the controls stay usable)
+    if (reduce) el.querySelectorAll('video').forEach((v) => { v.controls = true; v.style.position = 'relative'; v.style.zIndex = '2'; });
 
     const syncVideos = () => {
       slides.forEach((_, k) => {
